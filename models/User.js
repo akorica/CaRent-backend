@@ -27,6 +27,26 @@ const userSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  postalCode: {
+    type: Number,
+    required: false,
+    default: null,
+  },
+  adress: {
+    type: String,
+    required: false,
+    default: "",
+  },
+  city: {
+    type: String,
+    required: false,
+    default: "",
+  },
+  country: {
+    type: String,
+    required: false,
+    default: "",
+  },
 });
 
 const User = mongoose.model("user", userSchema);

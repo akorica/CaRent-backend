@@ -23,7 +23,7 @@ const port = 8000;
 const verify = (req, res, next) => {
   try {
     let authorization = req.headers.authorization.split(" ");
-    let token = authorization[0]; //bearer dio tokena
+    let token = authorization[0];
     console.log(" TU SMO ", token);
 
     req.user = jwt.verify(token, process.env.JWT_SECRET);
@@ -64,7 +64,21 @@ app.post("/register", async (req, res) => {
       age,
     });
     await userFound.save();
-    res.send(userFound);
+
+    userFound = userFound.toJSON();
+    delete userFound.password;
+
+    let token = jwt.sign(
+      userFound,
+      process.env.JWT_SECRET,
+      { expiresIn: "1 day" },
+      (error, token) => {
+        if (error) throw error;
+        console.log(token);
+        res.json({ token });
+      }
+    );
+    console.log(token);
   } catch (error) {
     res.status(500).json({ msg: "Server Error" });
   }
@@ -110,11 +124,35 @@ app.post("/login", async (req, res) => {
         res.json({ token });
       }
     );
-    console.log(token);
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: "Server Error" });
   }
+});
+
+app.post("/update", [verify], async (req, res) => {
+  console.log(req.user);
+  const { newName, newSurname, newAdress, newPostalCode, newCity, newCountry } =
+    req.body;
+  try {
+    let user = await User.findOne({ email: req.user.email });
+    if (newName) user.name = newName;
+    if (newSurname) user.surname = newSurname;
+    if (newAdress) user.adress = newAdress;
+    if (newPostalCode) user.postalCode = newPostalCode;
+    if (newCity) user.city = newCity;
+    if (newCountry) user.country = newCountry;
+    await user.save();
+    res.send(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+app.delete("/delete", [verify], async (req, res) => {
+  await User.deleteOne({ email: req.user.email });
+  res.status(200).send();
 });
 
 app.listen(port, () => console.log(`SLUŠA ${port}`));
