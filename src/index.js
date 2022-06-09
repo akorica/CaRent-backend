@@ -34,7 +34,7 @@ const verify = (req, res, next) => {
   }
 };
 
-app.post("/register", async (req, res) => {
+app.post("/user/register", async (req, res) => {
   const { name, surname, password, email, age } = req.body;
 
   if (!name || !surname || !password || !email || !age) {
@@ -97,7 +97,7 @@ app.get("/auth", [verify], async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.post("/user/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -131,7 +131,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/update", [verify], async (req, res) => {
+app.post("/user/update", [verify], async (req, res) => {
   console.log(req.user);
   const { newName, newSurname, newAdress, newPostalCode, newCity, newCountry } =
     req.body;
@@ -151,7 +151,7 @@ app.post("/update", [verify], async (req, res) => {
   }
 });
 
-app.delete("/delete", [verify], async (req, res) => {
+app.delete("/user/delete", [verify], async (req, res) => {
   await User.deleteOne({ email: req.user.email });
   res.status(200).send();
 });
@@ -189,8 +189,27 @@ app.post('/contact', (req, res) =>{
       res.status(200).send();
     }
   });
-  
+});
 
+app.post("/car/update", [verify], async (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.del("/car/delete", [verify], async (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.post("/car/add", [verify], async (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.listen(port, () => console.log(`SLUŠA ${port}`));
