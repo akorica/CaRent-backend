@@ -7,12 +7,13 @@ import * as EmailValidator from "email-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 dotenv.config({ path: __dirname + "/../.env" });
+import nodemailer from "nodemailer";
 
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
   })
-  .then(() => console.log("Connect"))
+  .then(() => console.log("Connected"))
   .catch((error) => console.log(error));
 
 const app = express();
@@ -155,4 +156,42 @@ app.delete("/delete", [verify], async (req, res) => {
   res.status(200).send();
 });
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'carent.help@gmail.com',
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
+app.post('/contact', (req, res) =>{
+  
+  const {from, subject, text} = req.body
+
+  const combined_text = '<b> Email: </b>' + from + '<br>' + text
+
+  console.log(from)
+  const mailOptions = {
+    from: from,
+    to: 'carent.help@gmail.com',
+    subject: subject,
+    html: combined_text,
+    
+  };
+
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      res.status(500).json({ msg: "Server Error" });
+    } else {
+      console.log('Email sent: ' + info.response);
+      res.status(200).send();
+    }
+  });
+  
+
+});
+
 app.listen(port, () => console.log(`SLUŠA ${port}`));
+
