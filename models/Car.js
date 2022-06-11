@@ -13,7 +13,7 @@ const carSchema = new mongoose.Schema({
     required: true,
   },
   places: {
-    type: Number,
+    type: String,
     required: true,
   },
   power: {
@@ -21,11 +21,11 @@ const carSchema = new mongoose.Schema({
     required: true,
   },
   doors: {
-    type: Number,
+    type: String,
     required: true,
   },
   luggageCapacity: {
-    type: Number,
+    type: String,
     required: true,
   },
   airConditioning: {
@@ -35,10 +35,8 @@ const carSchema = new mongoose.Schema({
   fuel: {
     type: String,
     required: true,
-
-    image,
   },
-  country: {
+  imageURL: {
     type: String,
     required: true,
     default: "",
@@ -46,4 +44,4 @@ const carSchema = new mongoose.Schema({
 });
 
 const Car = mongoose.model("car", carSchema);
-export default User;
+export default Car;

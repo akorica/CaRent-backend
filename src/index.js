@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import User from "../models/User";
+import Car from "../models/Car";
 import dotenv from "dotenv";
 import * as EmailValidator from "email-validator";
 import bcrypt from "bcryptjs";
@@ -135,6 +136,7 @@ app.post("/user/update", [verify], async (req, res) => {
   console.log(req.user);
   const { newName, newSurname, newAdress, newPostalCode, newCity, newCountry } =
     req.body;
+
   try {
     let user = await User.findOne({ email: req.user.email });
     if (newName) user.name = newName;
@@ -157,38 +159,86 @@ app.delete("/user/delete", [verify], async (req, res) => {
 });
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
-    user: 'carent.help@gmail.com',
-    pass: process.env.EMAIL_PASSWORD
-  }
+    user: "carent.help@gmail.com",
+    pass: process.env.EMAIL_PASSWORD,
+  },
 });
 
-app.post('/contact', (req, res) =>{
-  
-  const {from, subject, text} = req.body
+app.post("/contact", (req, res) => {
+  const { from, subject, text } = req.body;
 
-  const combined_text = '<b> Email: </b>' + from + '<br>' + text
+  const combined_text = "<b> Email: </b>" + from + "<br>" + text;
 
-  console.log(from)
+  console.log(from);
   const mailOptions = {
     from: from,
-    to: 'carent.help@gmail.com',
+    to: "carent.help@gmail.com",
     subject: subject,
     html: combined_text,
-    
   };
 
-
-  transporter.sendMail(mailOptions, function(error, info){
+  transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
       console.log(error);
       res.status(500).json({ msg: "Server Error" });
     } else {
-      console.log('Email sent: ' + info.response);
+      console.log("Email sent: " + info.response);
       res.status(200).send();
     }
   });
+});
+
+app.post("/car/add", async (req, res) => {
+  const {
+    make,
+    name,
+    bodyType,
+    places,
+    power,
+    doors,
+    luggageCapacity,
+    airConditioning,
+    fuel,
+    imageURL,
+  } = req.body;
+  if (
+    !make ||
+    !name ||
+    !bodyType ||
+    !places ||
+    !power ||
+    !doors ||
+    !luggageCapacity ||
+    !airConditioning ||
+    !fuel ||
+    !imageURL
+  ) {
+    return res.status(400).json({ msg: "All fields are required" });
+  }
+
+  try {
+    let newCar = new Car({
+      make,
+      name,
+      bodyType,
+      places,
+      power,
+      doors,
+      luggageCapacity,
+      airConditioning,
+      fuel,
+      imageURL,
+    });
+    await newCar.save();
+    console.log(newCar);
+    if (newCar) {
+      return res.status(200).json({ msg: "Car added" });
+    }
+  } catch (error) {
+    res.status(400).json({ msg: "Invalid data", data: req.body });
+  }
 });
 
 app.post("/car/update", [verify], async (req, res) => {
@@ -205,12 +255,4 @@ app.del("/car/delete", [verify], async (req, res) => {
   }
 });
 
-app.post("/car/add", [verify], async (req, res) => {
-  try {
-  } catch (error) {
-    console.log(error);
-  }
-});
-
 app.listen(port, () => console.log(`SLUŠA ${port}`));
-
