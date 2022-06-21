@@ -234,10 +234,20 @@ app.post("/car/add", async (req, res) => {
     await newCar.save();
     console.log(newCar);
     if (newCar) {
-      return res.status(200).json({ msg: "Car added" });
+      return res.status(200).json({ msg: "Car added", newCar });
     }
   } catch (error) {
     res.status(400).json({ msg: "Invalid data", data: req.body });
+  }
+});
+
+app.get("/car", async (req, res) => {
+  try {
+    let cars = await Car.find({});
+    res.send(cars);
+    console.log(cars);
+  } catch (error) {
+    console.log(error);
   }
 });
 
@@ -248,8 +258,11 @@ app.post("/car/update", [verify], async (req, res) => {
   }
 });
 
-app.del("/car/delete", [verify], async (req, res) => {
+app.delete("/car/delete/:id", [verify], async (req, res) => {
   try {
+    const id = req.params.id;
+    await Car.deleteOne({ _id: id });
+    res.status(200).send();
   } catch (error) {
     console.log(error);
   }
