@@ -199,9 +199,14 @@ app.post("/car/add", async (req, res) => {
     power,
     doors,
     luggageCapacity,
-    airConditioning,
+
     fuel,
     imageURL,
+    minDriversAge,
+    productionYear,
+    currentStation,
+    price,
+    transmission,
   } = req.body;
   if (
     !make ||
@@ -211,9 +216,13 @@ app.post("/car/add", async (req, res) => {
     !power ||
     !doors ||
     !luggageCapacity ||
-    !airConditioning ||
     !fuel ||
-    !imageURL
+    !imageURL ||
+    !minDriversAge ||
+    !productionYear ||
+    !currentStation ||
+    !price ||
+    !transmission
   ) {
     return res.status(400).json({ msg: "All fields are required" });
   }
@@ -227,9 +236,13 @@ app.post("/car/add", async (req, res) => {
       power,
       doors,
       luggageCapacity,
-      airConditioning,
       fuel,
       imageURL,
+      minDriversAge,
+      productionYear,
+      currentStation,
+      price,
+      transmission,
     });
     await newCar.save();
     console.log(newCar);
@@ -251,10 +264,48 @@ app.get("/car", async (req, res) => {
   }
 });
 
-app.post("/car/update", [verify], async (req, res) => {
+app.post("/car/update/:id", [verify], async (req, res) => {
+  const {
+    newMake,
+    newName,
+    newPlaces,
+    newPower,
+    newDoors,
+    newLuggageCapacity,
+
+    newFuel,
+    newImgURL,
+    newTransmission,
+    newProductionYear,
+    newMinDriversAge,
+    newPrice,
+    newCurrentStation,
+  } = req.body;
+
   try {
+    const id = req.params.id;
+    let car = await Car.findOne({ _id: id });
+
+    if (newMake) car.name = newMake;
+    if (newName) car.make = newName;
+    if (newPlaces) car.places = newPlaces;
+    if (newPower) car.power = newPower;
+    if (newDoors) car.doors = newDoors;
+    if (newLuggageCapacity) car.luggageCapacity = newLuggageCapacity;
+    if (newFuel) car.fuel = newFuel;
+    if (newImgURL) car.imageURL = newImgURL;
+
+    if (newTransmission) car.transmission = newTransmission;
+    if (newProductionYear) car.productionYear = newProductionYear;
+    if (newMinDriversAge) car.minDriversAge = newMinDriversAge;
+    if (newPrice) car.price = newPrice;
+    if (newCurrentStation) car.currentStation = newCurrentStation;
+    console.log(car);
+    await car.save();
+    res.send(car);
   } catch (error) {
     console.log(error);
+    res.status(500).json({ msg: "Server Error" });
   }
 });
 

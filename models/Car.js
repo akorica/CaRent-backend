@@ -28,14 +28,41 @@ const carSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  airConditioning: {
-    type: String,
-    required: true,
-  },
+
   fuel: {
     type: String,
     required: true,
   },
+  transmission: {
+    type: String,
+    required: true,
+  },
+
+  price: {
+    type: String,
+    required: true,
+  },
+  productionYear: {
+    type: String,
+    required: true,
+  },
+  minDriversAge: {
+    type: String,
+    required: true,
+  },
+  currentStation: {
+    type: String,
+    required: true,
+  },
+  rentedFrom: {
+    type: String,
+    required: false,
+  },
+  rentedUntil: {
+    type: String,
+    required: false,
+  },
+
   imageURL: {
     type: String,
     required: true,
