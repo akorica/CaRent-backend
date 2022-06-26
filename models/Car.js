@@ -12,7 +12,7 @@ const carSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  places: {
+  seats: {
     type: String,
     required: true,
   },
@@ -68,6 +68,11 @@ const carSchema = new mongoose.Schema({
     required: true,
     default: "",
   },
+  isRented: {
+    type: Boolean,
+    required: true,
+    default: false,
+  }
 });
 
 const Car = mongoose.model("car", carSchema);

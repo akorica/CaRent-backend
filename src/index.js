@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import User from "../models/User";
+import Rents from "../models/Rents";
 import Car from "../models/Car";
 import dotenv from "dotenv";
 import * as EmailValidator from "email-validator";
@@ -195,11 +196,10 @@ app.post("/car/add", async (req, res) => {
     make,
     name,
     bodyType,
-    places,
+    seats,
     power,
     doors,
     luggageCapacity,
-
     fuel,
     imageURL,
     minDriversAge,
@@ -212,7 +212,7 @@ app.post("/car/add", async (req, res) => {
     !make ||
     !name ||
     !bodyType ||
-    !places ||
+    !seats ||
     !power ||
     !doors ||
     !luggageCapacity ||
@@ -232,7 +232,7 @@ app.post("/car/add", async (req, res) => {
       make,
       name,
       bodyType,
-      places,
+      seats,
       power,
       doors,
       luggageCapacity,
@@ -268,7 +268,7 @@ app.post("/car/update/:id", [verify], async (req, res) => {
   const {
     newMake,
     newName,
-    newPlaces,
+    newseats,
     newPower,
     newDoors,
     newLuggageCapacity,
@@ -288,7 +288,7 @@ app.post("/car/update/:id", [verify], async (req, res) => {
 
     if (newMake) car.name = newMake;
     if (newName) car.make = newName;
-    if (newPlaces) car.places = newPlaces;
+    if (newseats) car.seats = newseats;
     if (newPower) car.power = newPower;
     if (newDoors) car.doors = newDoors;
     if (newLuggageCapacity) car.luggageCapacity = newLuggageCapacity;
@@ -319,4 +319,31 @@ app.delete("/car/delete/:id", [verify], async (req, res) => {
   }
 });
 
+app.post("/rent", [verify], async (req, res) => {
+  try {
+    const { carId, dropOffLocation, checkOutLocation, checkOut, dropOff } = req.body;
+    const user = req.user._id;
+    const carInfo = [{ car: carId, dropOffLocation, checkOutLocation, checkOut, dropOff }];
+    const rentExist = await Rents.findOne({user})
+    if(rentExist){
+      rentExist.carInfo.push({ car: carId, dropOffLocation, checkOutLocation, checkOut, dropOff })
+      await rentExist.save()
+      return res.send(rentExist)
+    }
+    const newRent = new Rents({ user, carInfo });
+    await newRent.save();
+    res.send(newRent);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/rent", [verify], async (req, res) => {
+  try {
+    const rent = await Rents.findOne({user: req.user._id}).populate(["user", 'carInfo.car'])
+    res.send(rent)
+  } catch (error) {
+    console.log(error);
+  }
+});
 app.listen(port, () => console.log(`SLUŠA ${port}`));
