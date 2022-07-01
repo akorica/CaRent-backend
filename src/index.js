@@ -192,6 +192,7 @@ app.post("/contact", (req, res) => {
 });
 
 app.post("/car/add", async (req, res) => {
+  console.log(req.body)
   const {
     make,
     name,
@@ -263,6 +264,8 @@ app.get("/car", async (req, res) => {
     console.log(error);
   }
 });
+
+
 
 app.post("/car/update/:id", [verify], async (req, res) => {
   const {
@@ -346,4 +349,17 @@ app.get("/rent", [verify], async (req, res) => {
     console.log(error);
   }
 });
+
+app.get("/car/:id", async (req, res) => {
+  try {
+    const id = req.params.id
+    let car = await Car.findOne({_id: id});
+    res.send(car);
+    console.log(car);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+
 app.listen(port, () => console.log(`SLUŠA ${port}`));
