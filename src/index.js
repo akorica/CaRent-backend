@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
-import mongoose from "mongoose";
+import mongoose, { isObjectIdOrHexString } from "mongoose";
 import User from "../models/User";
 import Rents from "../models/Rents";
 import Car from "../models/Car";
 import dotenv from "dotenv";
 import * as EmailValidator from "email-validator";
-import bcrypt from "bcryptjs";
+import bcrypt, { decodeBase64 } from "bcryptjs";
 import jwt from "jsonwebtoken";
 dotenv.config({ path: __dirname + "/../.env" });
 import nodemailer from "nodemailer";
@@ -192,7 +192,7 @@ app.post("/contact", (req, res) => {
 });
 
 app.post("/car/add", async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   const {
     make,
     name,
@@ -265,8 +265,6 @@ app.get("/car", async (req, res) => {
   }
 });
 
-
-
 app.post("/car/update/:id", [verify], async (req, res) => {
   const {
     newMake,
@@ -322,16 +320,78 @@ app.delete("/car/delete/:id", [verify], async (req, res) => {
   }
 });
 
+
+app.get("/rent", [verify], async (req, res) => {
+  try {
+    const rent = await Rents.findOne({ user: req.user._id }).populate([
+      "user",
+      "carInfo.car",
+    ]);
+    res.send(rent);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+
 app.post("/rent", [verify], async (req, res) => {
   try {
-    const { carId, dropOffLocation, checkOutLocation, checkOut, dropOff } = req.body;
+    const {
+      carId,
+      dropOffLocation,
+      checkOutLocation,
+      checkOut,
+      dropOff,
+      Name,
+      Surname,
+      Email,
+      Age,
+      Adress,
+      postalCode,
+      City,
+      Country,
+    } = req.body;
+    
+    await Car.findOneAndUpdate({id_: carId}, {isRented: true}) 
+
     const user = req.user._id;
-    const carInfo = [{ car: carId, dropOffLocation, checkOutLocation, checkOut, dropOff }];
-    const rentExist = await Rents.findOne({user})
-    if(rentExist){
-      rentExist.carInfo.push({ car: carId, dropOffLocation, checkOutLocation, checkOut, dropOff })
-      await rentExist.save()
-      return res.send(rentExist)
+    const carInfo = [
+      {
+        car: carId,
+        dropOffLocation,
+        checkOutLocation,
+        checkOut,
+        dropOff,
+        Name,
+        Surname,
+        Email,
+        Age,
+        Adress,
+        postalCode,
+        City,
+        Country,
+      },
+    ];
+
+    const rentExist = await Rents.findOne({ user });
+    if (rentExist) {
+      rentExist.carInfo.push({
+        car: carId,
+        dropOffLocation,
+        checkOutLocation,
+        checkOut,
+        dropOff,
+        Name,
+        Surname,
+        Email,
+        Age,
+        Adress,
+        postalCode,
+        City,
+        Country,
+      });
+      await rentExist.save();
+      return res.send(rentExist);
     }
     const newRent = new Rents({ user, carInfo });
     await newRent.save();
@@ -341,25 +401,15 @@ app.post("/rent", [verify], async (req, res) => {
   }
 });
 
-app.get("/rent", [verify], async (req, res) => {
-  try {
-    const rent = await Rents.findOne({user: req.user._id}).populate(["user", 'carInfo.car'])
-    res.send(rent)
-  } catch (error) {
-    console.log(error);
-  }
-});
-
 app.get("/car/:id", async (req, res) => {
   try {
-    const id = req.params.id
-    let car = await Car.findOne({_id: id});
+    const id = req.params.id;
+    let car = await Car.findOne({ _id: id });
     res.send(car);
     console.log(car);
   } catch (error) {
     console.log(error);
   }
 });
-
 
 app.listen(port, () => console.log(`SLUŠA ${port}`));
