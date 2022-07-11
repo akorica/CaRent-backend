@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose, { isObjectIdOrHexString } from "mongoose";
 import User from "../models/User";
 import Rents from "../models/Rents";
+import Review from "../models/Review";
 import Car from "../models/Car";
 import dotenv from "dotenv";
 import * as EmailValidator from "email-validator";
@@ -320,7 +321,6 @@ app.delete("/car/delete/:id", [verify], async (req, res) => {
   }
 });
 
-
 app.get("/rent", [verify], async (req, res) => {
   try {
     const rent = await Rents.findOne({ user: req.user._id }).populate([
@@ -332,7 +332,6 @@ app.get("/rent", [verify], async (req, res) => {
     console.log(error);
   }
 });
-
 
 app.post("/rent", [verify], async (req, res) => {
   try {
@@ -351,8 +350,8 @@ app.post("/rent", [verify], async (req, res) => {
       City,
       Country,
     } = req.body;
-    
-    await Car.findOneAndUpdate({id_: carId}, {isRented: true}) 
+
+    await Car.findOneAndUpdate({ id_: carId }, { isRented: true });
 
     const user = req.user._id;
     const carInfo = [
@@ -407,6 +406,75 @@ app.get("/car/:id", async (req, res) => {
     let car = await Car.findOne({ _id: id });
     res.send(car);
     console.log(car);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/users", async (req, res) => {
+  try {
+    let users = await User.find({});
+    res.send(users);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.patch("/user/setAdmin/:email", [verify], async (req, res) => {
+  try {
+    const email = req.params.email;
+    let user = await User.findOne({ email: email });
+    user.isAdmin = true;
+    await user.save();
+    res.send(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+app.patch("/user/revokeAdmin/:email", [verify], async (req, res) => {
+  try {
+    const email = req.params.email;
+    let user = await User.findOne({ email: email });
+    user.isAdmin = false;
+    await user.save();
+    res.send(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+app.post("/review/add", async (req, res) => {
+  const { name, surname, mark, comment, email } = req.body;
+
+  if (!name || !surname || !mark || !comment || !email) {
+    return res.status(400).json({ msg: "All fields are required" });
+  }
+
+  try {
+    let newReview = new Review({
+      name,
+      surname,
+      mark,
+      comment,
+      email,
+    });
+    await newReview.save();
+    console.log(newReview);
+    if (newReview) {
+      return res.status(200).json({ msg: "Review added", newReview });
+    }
+  } catch (error) {
+    res.status(400).json({ msg: "Invalid data", data: req.body });
+  }
+});
+
+app.get("/reviews", async (req, res) => {
+  try {
+    let reviews = await Review.find({});
+    res.send(reviews);
   } catch (error) {
     console.log(error);
   }
