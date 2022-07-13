@@ -5,6 +5,7 @@ import User from "../models/User";
 import Rents from "../models/Rents";
 import Review from "../models/Review";
 import Car from "../models/Car";
+import Rented from "../models/Rented";
 import dotenv from "dotenv";
 import * as EmailValidator from "email-validator";
 import bcrypt, { decodeBase64 } from "bcryptjs";
@@ -89,8 +90,6 @@ app.post("/user/register", async (req, res) => {
 });
 
 app.get("/auth", [verify], async (req, res) => {
-  console.log("JEL HVATA USERA?? ", req.user);
-
   try {
     const user = await User.findById(req.user._id).select("-password");
     res.json(user);
@@ -135,7 +134,6 @@ app.post("/user/login", async (req, res) => {
 });
 
 app.post("/user/update", [verify], async (req, res) => {
-  console.log(req.user);
   const { newName, newSurname, newAdress, newPostalCode, newCity, newCountry } =
     req.body;
 
@@ -173,7 +171,6 @@ app.post("/contact", (req, res) => {
 
   const combined_text = "<b> Email: </b>" + from + "<br>" + text;
 
-  console.log(from);
   const mailOptions = {
     from: from,
     to: "carent.help@gmail.com",
@@ -204,9 +201,9 @@ app.post("/car/add", async (req, res) => {
     luggageCapacity,
     fuel,
     imageURL,
-    minDriversAge,
+    driverLicenceCategory,
     productionYear,
-    currentStation,
+    location,
     price,
     transmission,
   } = req.body;
@@ -220,9 +217,9 @@ app.post("/car/add", async (req, res) => {
     !luggageCapacity ||
     !fuel ||
     !imageURL ||
-    !minDriversAge ||
+    !driverLicenceCategory ||
     !productionYear ||
-    !currentStation ||
+    !location ||
     !price ||
     !transmission
   ) {
@@ -240,9 +237,9 @@ app.post("/car/add", async (req, res) => {
       luggageCapacity,
       fuel,
       imageURL,
-      minDriversAge,
+      driverLicenceCategory,
       productionYear,
-      currentStation,
+      location,
       price,
       transmission,
     });
@@ -256,11 +253,80 @@ app.post("/car/add", async (req, res) => {
   }
 });
 
-app.get("/car", async (req, res) => {
+app.post("/car", async (req, res) => {
+  const {
+    make,
+    name,
+    seats,
+    power,
+    doors,
+    luggageCapacity,
+    fuel,
+
+    transmission,
+    productionYear,
+    driverLicenceCategory,
+    price,
+    location,
+    bodyType,
+    dateCheckOut,
+    dateDropOff,
+  } = req.body;
   try {
-    let cars = await Car.find({});
+    let cars;
+    let filter = {};
+    if (
+      !make &&
+      !name &&
+      !bodyType &&
+      !seats &&
+      !power &&
+      !doors &&
+      !luggageCapacity &&
+      !fuel &&
+      !driverLicenceCategory &&
+      !productionYear &&
+      !location &&
+      !transmission &&
+      !price
+    ) {
+      cars = await Car.find({}).sort("price");
+    } else {
+      if (location) filter.location = location;
+      if (make) filter.make = make;
+      if (name) filter.name = name;
+      if (bodyType) filter.bodyType = bodyType;
+      if (seats) filter.seats = seats;
+      if (doors) filter.doors = doors;
+      if (power) filter.power = power;
+      if (luggageCapacity) filter.luggageCapacity = luggageCapacity;
+      if (fuel) filter.fuel = fuel;
+      if (transmission) filter.transmission = transmission;
+      if (productionYear) filter.productionYear = productionYear;
+      if (driverLicenceCategory)
+        filter.driverLicenceCategory = driverLicenceCategory;
+      if (price) filter.price = { $lte: price };
+
+      cars = await Car.find(filter).sort("price");
+
+      let unavailableCars = await Rented.find({
+        $and: [
+          { dateInfo: { $elemMatch: { rentedFrom: { $gte: dateCheckOut } } } },
+          { dateInfo: { $elemMatch: { rentedUntil: { $lte: dateDropOff } } } },
+        ],
+      }).select("carID -_id");
+      console.log(unavailableCars);
+
+      cars = cars.filter((car) => {
+        //some -> umjesto da ide kroz cijeli array, kad nađe prvi koji odg kriteriju vraća true
+        if (unavailableCars.some((e) => e.carID == car._id)) {
+          return false;
+        }
+        return true;
+      });
+    }
+
     res.send(cars);
-    console.log(cars);
   } catch (error) {
     console.log(error);
   }
@@ -274,14 +340,14 @@ app.post("/car/update/:id", [verify], async (req, res) => {
     newPower,
     newDoors,
     newLuggageCapacity,
-
+    newBodyType,
     newFuel,
     newImgURL,
     newTransmission,
     newProductionYear,
-    newMinDriversAge,
+    newDriverLicenceCategory,
     newPrice,
-    newCurrentStation,
+    newLocation,
   } = req.body;
 
   try {
@@ -296,12 +362,13 @@ app.post("/car/update/:id", [verify], async (req, res) => {
     if (newLuggageCapacity) car.luggageCapacity = newLuggageCapacity;
     if (newFuel) car.fuel = newFuel;
     if (newImgURL) car.imageURL = newImgURL;
-
+    if (newBodyType) car.bodyType = newBodyType;
     if (newTransmission) car.transmission = newTransmission;
     if (newProductionYear) car.productionYear = newProductionYear;
-    if (newMinDriversAge) car.minDriversAge = newMinDriversAge;
+    if (newDriverLicenceCategory)
+      car.driverLicenceCategory = newDriverLicenceCategory;
     if (newPrice) car.price = newPrice;
-    if (newCurrentStation) car.currentStation = newCurrentStation;
+    if (newLocation) car.location = newLocation;
     console.log(car);
     await car.save();
     res.send(car);
@@ -337,8 +404,7 @@ app.post("/rent", [verify], async (req, res) => {
   try {
     const {
       carId,
-      dropOffLocation,
-      checkOutLocation,
+      location,
       checkOut,
       dropOff,
       Name,
@@ -351,14 +417,11 @@ app.post("/rent", [verify], async (req, res) => {
       Country,
     } = req.body;
 
-    await Car.findOneAndUpdate({ id_: carId }, { isRented: true });
-
     const user = req.user._id;
     const carInfo = [
       {
         car: carId,
-        dropOffLocation,
-        checkOutLocation,
+        location,
         checkOut,
         dropOff,
         Name,
@@ -376,8 +439,7 @@ app.post("/rent", [verify], async (req, res) => {
     if (rentExist) {
       rentExist.carInfo.push({
         car: carId,
-        dropOffLocation,
-        checkOutLocation,
+        location,
         checkOut,
         dropOff,
         Name,
@@ -390,11 +452,30 @@ app.post("/rent", [verify], async (req, res) => {
         Country,
       });
       await rentExist.save();
-      return res.send(rentExist);
+      res.send(rentExist);
+    } else {
+      const newRent = new Rents({ user, carInfo });
+      await newRent.save();
+      res.send(newRent);
     }
-    const newRent = new Rents({ user, carInfo });
-    await newRent.save();
-    res.send(newRent);
+    const rentedExist = await Rented.findOne({ carID: carId });
+    const dateInfo = [
+      {
+        rentedFrom: checkOut,
+        rentedUntil: dropOff,
+      },
+    ];
+    if (rentedExist) {
+      rentedExist.dateInfo.push({
+        rentedFrom: checkOut,
+        rentedUntil: dropOff,
+      });
+      await rentedExist.save();
+      return res.send(rentedExist);
+    }
+    const newRented = new Rented({ carID: carId, dateInfo });
+    await newRented.save();
+    res.send(newRented);
   } catch (error) {
     console.log(error);
   }

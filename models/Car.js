@@ -39,18 +39,18 @@ const carSchema = new mongoose.Schema({
   },
 
   price: {
-    type: String,
+    type: Number,
     required: true,
   },
   productionYear: {
     type: String,
     required: true,
   },
-  minDriversAge: {
+  driverLicenceCategory: {
     type: String,
     required: true,
   },
-  currentStation: {
+  location: {
     type: String,
     required: true,
   },
@@ -68,11 +68,6 @@ const carSchema = new mongoose.Schema({
     required: true,
     default: "",
   },
-  isRented: {
-    type: Boolean,
-    required: true,
-    default: false,
-  }
 });
 
 const Car = mongoose.model("car", carSchema);

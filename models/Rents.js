@@ -13,11 +13,7 @@ const rentSchema = new mongoose.Schema({
         ref: "car",
         required: true,
       },
-      checkOutLocation: {
-        type: String,
-        required: true,
-      },
-      dropOffLocation: {
+      location: {
         type: String,
         required: true,
       },
@@ -35,31 +31,31 @@ const rentSchema = new mongoose.Schema({
       },
       Surname: {
         type: String,
-        required: true 
+        required: true,
       },
       Email: {
         type: String,
-        required: true
+        required: true,
       },
       Age: {
         type: Number,
-        required: true
+        required: true,
       },
       Adress: {
         type: String,
-        required: true
+        required: true,
       },
       postalCode: {
         type: Number,
-        required: true
+        required: true,
       },
       City: {
         type: String,
-        required: true
+        required: true,
       },
       Country: {
         type: String,
-        required: true
+        required: true,
       },
     },
   ],
