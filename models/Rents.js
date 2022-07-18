@@ -13,6 +13,11 @@ const rentSchema = new mongoose.Schema({
         ref: "car",
         required: true,
       },
+      hasReturned: {
+        type: Boolean,
+        default: false,
+        required: true
+      },
       location: {
         type: String,
         required: true,
@@ -57,6 +62,10 @@ const rentSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      totalPrice: {
+        type: Number,
+        required: true,
+      }
     },
   ],
 });
