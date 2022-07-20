@@ -390,21 +390,21 @@ app.delete("/car/delete/:id", [verify], async (req, res) => {
 
 app.post("/rent/updateReturnal", async (req, res) => {
   try {
-    const { idUser, idCarInfo } = req.body
+    const { idUser, idCarInfo } = req.body;
     const updatedCar = await Rents.updateOne(
-      { user: idUser, carInfo: {$elemMatch: {_id: idCarInfo}}},
-        {
-          $set: {
-              "carInfo.$.hasReturned": true,
-           }
+      { user: idUser, carInfo: { $elemMatch: { _id: idCarInfo } } },
+      {
+        $set: {
+          "carInfo.$.hasReturned": true,
+        },
       }
-  ) 
-  
+    );
+
     res.status(200).send(updatedCar);
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-})
+});
 
 app.get("/user/rent", [verify], async (req, res) => {
   try {
@@ -420,10 +420,7 @@ app.get("/user/rent", [verify], async (req, res) => {
 
 app.get("/rent", [verify], async (req, res) => {
   try {
-    const rent = await Rents.find({}).populate([
-      "user",
-      "carInfo.car",
-    ]);
+    const rent = await Rents.find({}).populate(["user", "carInfo.car"]);
     res.send(rent);
   } catch (error) {
     console.log(error);
@@ -445,7 +442,7 @@ app.post("/rent", [verify], async (req, res) => {
       postalCode,
       City,
       Country,
-      totalPrice
+      totalPrice,
     } = req.body;
 
     const user = req.user._id;
@@ -588,6 +585,24 @@ app.get("/reviews", async (req, res) => {
   try {
     let reviews = await Review.find({});
     res.send(reviews);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.post("/rent/reports", async (req, res) => {
+  try {
+    const { dateRentsTo, dateRentsFrom } = req.body;
+    console.log(req.body);
+    let getRentsByDate = await Rents.find({
+      carInfo: {
+        $elemMatch: { checkOut: { $gte: dateRentsFrom, $lte: dateRentsTo } },
+      },
+    }).populate([
+      "user",
+      "carInfo.car",
+    ]);
+    res.send(getRentsByDate)
   } catch (error) {
     console.log(error);
   }
