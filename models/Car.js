@@ -46,7 +46,7 @@ const carSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  driverLicenceCategory: {
+  driverLicenseCategory: {
     type: String,
     required: true,
   },

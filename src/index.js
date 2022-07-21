@@ -155,6 +155,8 @@ app.post("/user/update", [verify], async (req, res) => {
 
 app.delete("/user/delete", [verify], async (req, res) => {
   await User.deleteOne({ email: req.user.email });
+
+  await Review.deleteMany({ email: req.user.email });
   res.status(200).send();
 });
 
@@ -201,7 +203,7 @@ app.post("/car/add", async (req, res) => {
     luggageCapacity,
     fuel,
     imageURL,
-    driverLicenceCategory,
+    driverLicenseCategory,
     productionYear,
     location,
     price,
@@ -217,7 +219,7 @@ app.post("/car/add", async (req, res) => {
     !luggageCapacity ||
     !fuel ||
     !imageURL ||
-    !driverLicenceCategory ||
+    !driverLicenseCategory ||
     !productionYear ||
     !location ||
     !price ||
@@ -237,7 +239,7 @@ app.post("/car/add", async (req, res) => {
       luggageCapacity,
       fuel,
       imageURL,
-      driverLicenceCategory,
+      driverLicenseCategory,
       productionYear,
       location,
       price,
@@ -265,7 +267,7 @@ app.post("/car", async (req, res) => {
 
     transmission,
     productionYear,
-    driverLicenceCategory,
+    driverLicenseCategory,
     price,
     location,
     bodyType,
@@ -284,7 +286,7 @@ app.post("/car", async (req, res) => {
       !doors &&
       !luggageCapacity &&
       !fuel &&
-      !driverLicenceCategory &&
+      !driverLicenseCategory &&
       !productionYear &&
       !location &&
       !transmission &&
@@ -303,8 +305,8 @@ app.post("/car", async (req, res) => {
       if (fuel) filter.fuel = fuel;
       if (transmission) filter.transmission = transmission;
       if (productionYear) filter.productionYear = productionYear;
-      if (driverLicenceCategory)
-        filter.driverLicenceCategory = driverLicenceCategory;
+      if (driverLicenseCategory)
+        filter.driverLicenseCategory = driverLicenseCategory;
       if (price) filter.price = { $lte: price };
 
       cars = await Car.find(filter).sort("price");
@@ -345,7 +347,7 @@ app.post("/car/update/:id", [verify], async (req, res) => {
     newImgURL,
     newTransmission,
     newProductionYear,
-    newDriverLicenceCategory,
+    newDriverLicenseCategory,
     newPrice,
     newLocation,
   } = req.body;
@@ -365,8 +367,8 @@ app.post("/car/update/:id", [verify], async (req, res) => {
     if (newBodyType) car.bodyType = newBodyType;
     if (newTransmission) car.transmission = newTransmission;
     if (newProductionYear) car.productionYear = newProductionYear;
-    if (newDriverLicenceCategory)
-      car.driverLicenceCategory = newDriverLicenceCategory;
+    if (newDriverLicenseCategory)
+      car.driverLicenseCategory = newDriverLicenseCategory;
     if (newPrice) car.price = newPrice;
     if (newLocation) car.location = newLocation;
     console.log(car);
@@ -590,6 +592,16 @@ app.get("/reviews", async (req, res) => {
   }
 });
 
+app.delete("/review/delete/:id", [verify], async (req, res) => {
+  try {
+    const id = req.params.id;
+    await Review.deleteOne({ _id: id });
+    res.status(200).send();
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 app.post("/rent/reports", async (req, res) => {
   try {
     const { dateRentsTo, dateRentsFrom } = req.body;
@@ -598,11 +610,8 @@ app.post("/rent/reports", async (req, res) => {
       carInfo: {
         $elemMatch: { checkOut: { $gte: dateRentsFrom, $lte: dateRentsTo } },
       },
-    }).populate([
-      "user",
-      "carInfo.car",
-    ]);
-    res.send(getRentsByDate)
+    }).populate(["user", "carInfo.car"]);
+    res.send(getRentsByDate);
   } catch (error) {
     console.log(error);
   }
