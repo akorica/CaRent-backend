@@ -502,11 +502,11 @@ app.post("/rent", [verify], async (req, res) => {
         rentedUntil: dropOff,
       });
       await rentedExist.save();
-      return res.send(rentedExist);
+      //   return res.send(rentedExist);
     }
     const newRented = new Rented({ carID: carId, dateInfo });
     await newRented.save();
-    res.send(newRented);
+    //res.send(newRented);
   } catch (error) {
     console.log(error);
   }
@@ -615,7 +615,10 @@ app.post("/rent/reports", async (req, res) => {
     const result = [];
     getRentsByDate.forEach((oneUser) => {
       oneUser.carInfo.forEach((oneRent) => {
-        if (oneRent.checkOut >= new Date(dateRentsFrom) && oneRent.dropOff <= new Date(dateRentsTo))
+        if (
+          oneRent.checkOut >= new Date(dateRentsFrom) &&
+          oneRent.dropOff <= new Date(dateRentsTo)
+        )
           result.push(oneRent);
       });
     });
@@ -623,6 +626,70 @@ app.post("/rent/reports", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+});
+
+app.post("/rent/contact", (req, res) => {
+  const {
+    email,
+    userName,
+    userSurname,
+    carName,
+    carLocation,
+    carMake,
+    rentedFrom,
+    rentedUntil,
+  } = req.body;
+
+  const combined_text =
+    "<b>Thank you " +
+    userName +
+    " " +
+    userSurname +
+    " for your rent.</b>" +
+    "<br>" +
+    "<br>" +
+    "<b>Rental information</b>" +
+    "<br>" +
+    "You have rented the following vehicle:" +
+    carMake +
+    " " +
+    carName +
+    "<br>" +
+    "  You need to pick up the vehicle at the " +
+    carLocation +
+    " and return it there." +
+    "<br>" +
+    "The vehicle can be collected from: " +
+    rentedFrom +
+    "<br>" +
+    "The vehicle must be returned by: " +
+    rentedUntil +
+    "<br>" +
+    "<br>" +
+    "If there are any difficulties, we will contact you at: " +
+    email +
+    "<br>" +
+    "<br>" +
+    "Have a nice trip!" +
+    "<br>" +
+    "CaRent";
+
+  const mailOptions = {
+    from: "carent.help@gmail.com",
+    to: email,
+    subject: "CaRent - Rental information",
+    html: combined_text,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+      res.status(500).json({ msg: "Server Error" });
+    } else {
+      console.log("Email sent: " + info.response);
+      res.status(200).send();
+    }
+  });
 });
 
 app.listen(port, () => console.log(`SLUŠA ${port}`));
