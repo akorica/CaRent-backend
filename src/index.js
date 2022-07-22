@@ -607,11 +607,19 @@ app.post("/rent/reports", async (req, res) => {
     const { dateRentsTo, dateRentsFrom } = req.body;
     console.log(req.body);
     let getRentsByDate = await Rents.find({
-      carInfo: {
-        $elemMatch: { checkOut: { $gte: dateRentsFrom, $lte: dateRentsTo } },
-      },
+      $and: [
+        { carInfo: { $elemMatch: { checkOut: { $gte: dateRentsFrom } } } },
+        { carInfo: { $elemMatch: { dropOff: { $lte: dateRentsTo } } } },
+      ],
     }).populate(["user", "carInfo.car"]);
-    res.send(getRentsByDate);
+    const result = [];
+    getRentsByDate.forEach((oneUser) => {
+      oneUser.carInfo.forEach((oneRent) => {
+        if (oneRent.checkOut >= new Date(dateRentsFrom) && oneRent.dropOff <= new Date(dateRentsTo))
+          result.push(oneRent);
+      });
+    });
+    res.send(result);
   } catch (error) {
     console.log(error);
   }

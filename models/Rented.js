@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 const rentedSchema = new mongoose.Schema({
   carID: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "car",
     required: true,
   },
   dateInfo: [
