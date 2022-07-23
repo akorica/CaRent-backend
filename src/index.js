@@ -655,7 +655,7 @@ app.post("/rent/contact", (req, res) => {
     " " +
     carName +
     "<br>" +
-    "  You need to pick up the vehicle at the " +
+    "  You need to pick up the vehicle at " +
     carLocation +
     " and return it there." +
     "<br>" +
