@@ -338,7 +338,7 @@ app.post("/car/update/:id", [verify], async (req, res) => {
   const {
     newMake,
     newName,
-    newseats,
+    newSeats,
     newPower,
     newDoors,
     newLuggageCapacity,
@@ -351,14 +351,16 @@ app.post("/car/update/:id", [verify], async (req, res) => {
     newPrice,
     newLocation,
   } = req.body;
-
+  console.log(newMake,
+    newName,
+    newSeats)
   try {
     const id = req.params.id;
     let car = await Car.findOne({ _id: id });
 
-    if (newMake) car.name = newMake;
-    if (newName) car.make = newName;
-    if (newseats) car.seats = newseats;
+    if (newMake) car.name = newName;
+    if (newName) car.make = newMake;
+    if (newSeats) car.seats = newSeats;
     if (newPower) car.power = newPower;
     if (newDoors) car.doors = newDoors;
     if (newLuggageCapacity) car.luggageCapacity = newLuggageCapacity;
