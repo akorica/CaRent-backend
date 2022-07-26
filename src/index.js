@@ -133,7 +133,7 @@ app.post("/user/login", async (req, res) => {
   }
 });
 
-app.post("/user/update", [verify], async (req, res) => {
+app.patch("/user/update", [verify], async (req, res) => {
   const { newName, newSurname, newAdress, newPostalCode, newCity, newCountry } =
     req.body;
 
@@ -334,7 +334,7 @@ app.post("/car", async (req, res) => {
   }
 });
 
-app.post("/car/update/:id", [verify], async (req, res) => {
+app.patch("/car/update/:id", [verify], async (req, res) => {
   const {
     newMake,
     newName,
@@ -392,7 +392,7 @@ app.delete("/car/delete/:id", [verify], async (req, res) => {
   }
 });
 
-app.post("/rent/updateReturnal", async (req, res) => {
+app.patch("/rent/updateReturnal", async (req, res) => {
   try {
     const { idUser, idCarInfo } = req.body;
     const updatedCar = await Rents.updateOne(
